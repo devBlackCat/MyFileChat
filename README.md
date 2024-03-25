@@ -1,4 +1,4 @@
-# MyFileChat 프로젝트
+# MyFileChat 프로젝트[앱/웹/서버]
 
 ## 개요
 
