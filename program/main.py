@@ -115,6 +115,7 @@ class ChatApp(QWidget):
                 border: none;
                 background: none;
             }
+         
         """)
 
     def toggleUploadOptions(self):
@@ -132,7 +133,7 @@ class ChatApp(QWidget):
         # 캐시된 메시지가 있는지 확인
         try:
             # 서버에서 메시지 로드
-            response = requests.get('localhost/chat/list.php')
+            response = requests.get('localhost/list.php')
             if response.status_code == 200:
                 new_messages = response.json().get('messages', [])
                 # 캐시에서 메시지 로드
@@ -159,7 +160,7 @@ class ChatApp(QWidget):
             now = datetime.now().isoformat()
             messageData = {'text': message, 'date': now}
             try:
-                response = requests.post('localhost/chat/message.php',
+                response = requests.post('localhost/message.php',
                                          data=json.dumps(messageData),
                                          headers={'Content-Type': 'application/json'})
                 if response.status_code == 200:
@@ -178,7 +179,7 @@ class ChatApp(QWidget):
         if fname:
             try:
                 files = {'file': (fname.split('/')[-1], open(fname, 'rb'))}
-                response = requests.post('localhost/chat/file.php',
+                response = requests.post('localhost/file.php',
                                          files=files)
                 if response.status_code == 200:
                     newMessage = response.json().get('newMessage')
@@ -194,7 +195,7 @@ class ChatApp(QWidget):
         if fname:
             try:
                 files = {'file': (fname.split('/')[-1], open(fname, 'rb'))}
-                response = requests.post('localhost/chat/image.php',
+                response = requests.post('localhost/image.php',
                                         files=files)
                 if response.status_code == 200:
                     newMessage = response.json().get('newMessage')
@@ -215,10 +216,13 @@ class ChatApp(QWidget):
     def updateMessages(self, messages, clear_existing=False):
      #    self.messagesArea.clear()  이전 메시지를 지우고 새로 시작합니다.
         for msg in messages:
-            displayMsg = f" - {msg['date']}"  # 메시지에 날짜를 추가합니다.
+            displayMsg = f"<span> </span><span style='color: #949ba4; font-size: 10px;'> {msg['date']}</span>"
+
+
+
             if 'isFile' in msg:
                 # 파일 메시지인 경우 다운로드 링크를 생성합니다.
-                fileLink = f"<a href='{msg['file']}' target='_blank' style='text-decoration: none; color: blue;'>{msg.get('text', 'Download File')}</a>"
+                fileLink = f"<p><a href='{msg['file']}' target='_blank' style='text-decoration: none; color: #fff;font-size:16px;'>{msg.get('text', 'Download File')}</a></p>"
                 self.messagesArea.append(fileLink + displayMsg)
             elif 'isImage' in msg:
                 # 이미지 메시지인 경우
@@ -227,7 +231,7 @@ class ChatApp(QWidget):
                 if img_url in self.cache:
                     # 캐시된 이미지 데이터를 사용합니다.
                     img_base64 = self.cache[img_url]
-                    imgTag = f"<a href='{img_url}' target='_blank'><img src='data:image/jpeg;base64,{img_base64}' width='200' /></a>"
+                    imgTag = f"<p><a href='{img_url}' target='_blank' ><img src='data:image/jpeg;base64,{img_base64}' width='400' /></a></p>"
                     self.messagesArea.append(imgTag + displayMsg)
                 else:
                     # 캐시에 없는 경우, 서버에서 이미지를 로드합니다.
@@ -239,14 +243,15 @@ class ChatApp(QWidget):
                             # 캐시에 이미지를 저장합니다.
                             self.cache[img_url] = img_base64
                             # 이미지 태그를 생성하고 메시지를 표시합니다.
-                            imgTag = f"<a href='{img_url}' target='_blank'><img src='data:image/jpeg;base64,{img_base64}' width='200' /></a>"
+                            imgTag = f"<p><a href='{img_url}' target='_blank'><img src='data:image/jpeg;base64,{img_base64}' width='200' /></a></p>"
                             self.messagesArea.append(imgTag + displayMsg)
                     except Exception as e:
                         # 이미지 로드 실패 시 오류 메시지를 표시합니다.
                         self.messagesArea.append(displayMsg + "이미지를 불러올 수 없습니다.")
             else:
                 # 일반 텍스트 메시지인 경우
-                self.messagesArea.append(displayMsg + msg['text'])
+               
+                self.messagesArea.append(f"<p style='margin:10px 0;font-size:16px; color: #fff;'>{msg['text']} {displayMsg}</p>")
 
 
 if __name__ == '__main__':
